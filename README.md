@@ -93,9 +93,9 @@ Adjust `--video` and checkpoint paths for your machine.
 
 ---
 
-## Written report (PDF)
+## Written report 
 
-# Pipeline architecture
+Pipeline architecture
 
 ```mermaid
 flowchart TD
