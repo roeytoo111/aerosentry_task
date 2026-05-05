@@ -1,22 +1,60 @@
-# AeroSentry — small-UAV detection (take-home)
+# AeroSentry — CV engineer assignment (pipeline)
 
-End-to-end project: **train a YOLO detector** on a YOLO-format image dataset, **evaluate** on held-out frames, and **run video inference** with an optional **false-positive (FP) reduction** stack on top of raw detections.
+End-to-end **YOLO11** training on a YOLO-format image dataset, **offline evaluation** on image splits, and **video inference** with an optional **false-positive reduction** layer (`FalsePositiveSuppressor`: temporal tracks + geometric ego-motion, or `--fp-geo-only` for geometry-only ablation).
 
-This repo is **code only**. Dataset paths, videos, and `*.pt` checkpoints live on your machine (see `.gitignore`). Point `config/dataset_aerosentry.yaml` at your data before training or evaluation.
+This repository is **code only**: datasets, videos, and `*.pt` checkpoints stay local (see `.gitignore`). Set paths in **`config/dataset_aerosentry.yaml`**.
 
----
+## Pipeline architecture
 
-## Architecture (short)
+```mermaid
+flowchart TD
+    classDef default fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,color:#0f172a;
+    classDef entry fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#0f172a;
+    classDef core fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#0f172a;
+    classDef data fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#0f172a;
 
-| Layer | Role |
-|--------|------|
-| **Detector** | **YOLO11n** via Ultralytics — one forward pass per frame; outputs boxes, scores, class. |
-| **Video path** | OpenCV reads frames → detector → optional post-process. |
-| **FP reduction (optional)** | **`FalsePositiveSuppressor`**: lightweight **tracking** (e.g. M-of-N consistency, smoothing) plus a **geometric gate** (**`GeometricEgoMotion`**: sparse features, essential/homography models) to drop detections that disagree with estimated camera motion. Use **`--fp-suppressor`** for the full gate or **`--fp-geo-only`** to ablate tracking and keep geometry-only behavior. |
+    ENTRY(["run.py — CLI entry"]) ::: entry
 
-Unified entry point: **`python run.py`** with subcommands `train`, `eval`, `infer`, `compare-fp-video`, etc.
+    subgraph Modes ["Execution modes"]
+        direction LR
+        INFER["infer_video.py"]
+        TRAIN["train_detector.py"]
+        EVAL["evaluate_detector.py"]
+        TOOLS["export, split, report, compare-fp-video"]
+    end
 
-Deeper diagrams and module map: [`docs/README.md`](docs/README.md).
+    subgraph TrainPath ["Training (offline)"]
+        direction LR
+        UTR["Ultralytics train → best.pt"]
+    end
+
+    subgraph EvalPath ["Image evaluation (offline)"]
+        direction LR
+        UEV["YOLO inference + P/R/F1 matching"]
+    end
+
+    subgraph Pipeline ["Video path — per frame"]
+        direction TD
+        YOLO["1. Ultralytics YOLO (detection)"] ::: core
+        subgraph FP ["2. FalsePositiveSuppressor (optional)"]
+            direction TD
+            TM["TrackManager — M-of-N, 1€ filter"] ::: core
+            GEO["GeometricEgoMotion — ORB, RANSAC F/H"] ::: core
+            TM --> GEO
+        end
+        YOLO --> TM
+    end
+
+    DATA[("Data contracts — FrameData, Detection")] ::: data
+
+    ENTRY --> Modes
+    INFER --> Pipeline
+    TRAIN --> TrainPath
+    EVAL --> EvalPath
+    Pipeline --> DATA
+```
+
+**Full FP gate:** tracks can confirm detections before geometry runs; **`--fp-geo-only`** skips `TrackManager` and applies the geometric gate to raw boxes (ablation). Module-level detail: [`docs/README.md`](docs/README.md).
 
 ---
 
