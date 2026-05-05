@@ -88,7 +88,15 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     p.add_argument(
         "--fp-suppressor",
         action="store_true",
-        help="Apply FalsePositiveSuppressor after each frame (temporal / ego gate).",
+        help="Apply FalsePositiveSuppressor after each frame (TrackManager + geometric gate).",
+    )
+    p.add_argument(
+        "--fp-geo-only",
+        action="store_true",
+        help=(
+            "Apply only GeometricEgoMotion (no TrackManager). Implies FP post-process; "
+            "use to ablate geometry vs full --fp-suppressor."
+        ),
     )
     p.add_argument(
         "--out",
@@ -123,7 +131,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     p.add_argument(
         "--geo-debug",
         action="store_true",
-        help="When using --fp-suppressor, print [GeometricEgoMotion] / skip logs (or set AEROSENTRY_GEO_DEBUG=1).",
+        help="With --fp-suppressor or --fp-geo-only: GeometricEgoMotion / FP skip logs (or AEROSENTRY_GEO_DEBUG=1).",
     )
     return p.parse_args(argv)
 
@@ -158,9 +166,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         imgsz=args.imgsz,
         conf=args.conf,
     )
-    suppressor: Optional[FalsePositiveSuppressor] = (
-        FalsePositiveSuppressor() if args.fp_suppressor else None
-    )
+    if getattr(args, "fp_geo_only", False):
+        suppressor: Optional[FalsePositiveSuppressor] = FalsePositiveSuppressor(
+            geo_only=True
+        )
+    elif args.fp_suppressor:
+        suppressor = FalsePositiveSuppressor()
+    else:
+        suppressor = None
 
     cap = cv2.VideoCapture(str(args.source))
     if not cap.isOpened():

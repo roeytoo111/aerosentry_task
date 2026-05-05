@@ -14,7 +14,7 @@
 |-----|-----------|----------------|
 | 1 | סביבה + תלויות | סעיף [התקנה](#1-התקנה) |
 | 2 | לחבר נתיב דאטאסט | `config/dataset_aerosentry.yaml` |
-| 3 | לבחור ניסוי אימון | `config/experiments.yaml` (`A` / `B` / `C`) |
+| 3 | לבחור ניסוי אימון | `config/experiments.yaml` (`A` / `B`) |
 | 4 | לאמן | `python3 run.py train --experiment A` |
 | 5 | לאתר `best.pt` | `find runs -name best.pt` |
 | 6 | להעריך על תמונות | `python3 run.py eval --weights … --split val` |
@@ -68,7 +68,7 @@ python3 --version   # צפוי 3.10 או מעלה
 
 הגדרות ניסויים (ארכיטקטורה, אופטימיזר, epoch וכו׳) נמצאות ב־**`config/experiments.yaml`**.
 
-- **`python3 run.py train --experiment A`** — ניסוי baseline (החלף ב־`B` או `C` לפי הקובץ).
+- **`python3 run.py train --experiment A`** — ניסוי baseline (החלף ב־`B` לפי הקובץ).
 - **`--resume PATH/last.pt`** — להמשך אימון.
 - **`--epochs N`** — לעקוף את מספר הEpochs ב־YAML להרצה זו.
 

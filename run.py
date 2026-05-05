@@ -142,7 +142,9 @@ def _run_infer(ns: argparse.Namespace) -> int:
         "--conf",
         str(ns.conf),
     ]
-    if ns.fp_suppressor:
+    if getattr(ns, "fp_geo_only", False):
+        argv.append("--fp-geo-only")
+    elif ns.fp_suppressor:
         argv.append("--fp-suppressor")
     if ns.out:
         argv.extend(["--out", str(ns.out)])
@@ -207,6 +209,8 @@ def _run_compare_fp_video(ns: argparse.Namespace) -> int:
         if ns.names:
             argv.append("--names")
             argv.extend(ns.names)
+    if getattr(ns, "gt_json", None) is not None:
+        argv.extend(["--gt-json", str(ns.gt_json)])
     return int(compare_main(argv))
 
 
@@ -217,11 +221,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p_train = sub.add_parser("train", help="Train YOLO11 via Ultralytics (experiments A/B/C).")
+    p_train = sub.add_parser("train", help="Train YOLO11 via Ultralytics (experiments A/B).")
     p_train.add_argument(
         "--experiment",
         "-e",
-        choices=["A", "B", "C", "a", "b", "c"],
+        choices=["A", "B", "a", "b"],
         required=True,
     )
     p_train.add_argument("--config", type=Path, default=Path("config/experiments.yaml"))
@@ -304,6 +308,11 @@ def main(argv: list[str] | None = None) -> int:
     p_inf.add_argument("--imgsz", type=int, default=640)
     p_inf.add_argument("--conf", type=float, default=0.25)
     p_inf.add_argument("--fp-suppressor", action="store_true")
+    p_inf.add_argument(
+        "--fp-geo-only",
+        action="store_true",
+        help="FP post-process: only GeometricEgoMotion (no TrackManager). Overrides --fp-suppressor.",
+    )
     p_inf.add_argument("--out", type=Path, default=None)
     p_inf.add_argument("--show", action="store_true")
     p_inf.add_argument("--max-frames", type=int, default=0)
@@ -318,7 +327,7 @@ def main(argv: list[str] | None = None) -> int:
     p_inf.add_argument(
         "--geo-debug",
         action="store_true",
-        help="With --fp-suppressor: print GeometricEgoMotion / FP skip logs.",
+        help="With --fp-suppressor / --fp-geo-only: GeometricEgoMotion / FP skip logs.",
     )
     p_inf.set_defaults(_handler=_run_infer)
 
@@ -329,7 +338,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_cmp = sub.add_parser(
         "compare-fp-video",
-        help="Benchmark multiple weights on one video: YOLO vs YOLO+FP suppressor; write MD/CSV/JSON.",
+        help="Benchmark weights on one video: raw vs full FP vs geo-only FP; MD/CSV/JSON.",
     )
     wg = p_cmp.add_mutually_exclusive_group(required=True)
     wg.add_argument(
@@ -360,6 +369,12 @@ def main(argv: list[str] | None = None) -> int:
     p_cmp.add_argument("--out-md", type=Path, default=Path("outputs/fp_video_compare.md"))
     p_cmp.add_argument("--out-csv", type=Path, default=Path("outputs/fp_video_compare.csv"))
     p_cmp.add_argument("--out-json", type=Path, default=Path("outputs/fp_video_compare.json"))
+    p_cmp.add_argument(
+        "--gt-json",
+        type=Path,
+        default=None,
+        help="Optional per-frame GT (pixel xyxy) for TP/FP/FN and P/R; see tools/benchmark_video_fp_compare.py doc.",
+    )
     p_cmp.add_argument("--no-json", action="store_true")
     p_cmp.set_defaults(_handler=_run_compare_fp_video)
 

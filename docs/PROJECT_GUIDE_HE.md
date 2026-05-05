@@ -12,7 +12,7 @@
 4. [חוזי נתונים (`data_contracts`)](#4-חוזי-נתונים-data_contracts)
 5. [דאטאסט, מחלקות, ואיפה נוצרים גרפי אימון](#5-דאטאסט-מחלקות-ואיפה-נוצרים-גרפי-אימון)
 6. [ממשק מודל, Factory וסטאבים — מי קורא את מי](#6-ממשק-מודל-factory-וסטאבים--מי-קורא-את-מי)
-7. [אימון — `train_detector.py`, `experiments.yaml`, ניסויים A/B/C לעומק](#7-אימון--train_detectorpy-experimentsyaml-ניסויים-abc-לעומק)
+7. [אימון — `train_detector.py`, `experiments.yaml`, ניסויים A/B לעומק](#7-אימון--train_detectorpy-experimentsyaml-ניסויים-ab-לעומק)
 8. [הערכת תמונות — `evaluate_detector.py` לעומק (סweep, IoU, Greedy)](#8-הערכת-תמונות--evaluate_detectorpy-לעומק-sweep-iou-greedy)
 9. [מסנן One Euro — איך זה עובד בקוד](#9-מסנן-one-euro--איך-זה-עובד-בקוד)
 10. [`TrackManager` — שיבוץ, הצבעת M-of-N, מחיקת מסלולים](#10-trackmanager--שיבוץ-הצבעת-m-of-n-מחיקת-מסלולים)
@@ -61,7 +61,7 @@
 
 | פקודה | קובץ ליבה | תיאור קצר |
 |--------|-----------|------------|
-| `train` | `src/models/train_detector.py` | אימון YOLO11 לפי `config/experiments.yaml` (A / B / C). |
+| `train` | `src/models/train_detector.py` | אימון YOLO11 לפי `config/experiments.yaml` (A / B). |
 | `eval` | `src/models/evaluate_detector.py` | P / R / F1 / FDR על split תמונות; סweep ספי `conf` בתוכנה. |
 | `infer` | `tools/infer_video.py` | וידאו + משקולות אמיתיות; אופציונלי `--fp-suppressor`. |
 | `demo` | `src/pipeline/pipeline_manager.py` | צינור עם דטקטור **סטאב** + FP suppressor (בדיקת שלד). |
@@ -187,17 +187,16 @@ x_1 = (c_x - w/2)\,W,\quad y_1 = (c_y - h/2)\,H,\quad x_2 = (c_x + w/2)\,W,\quad
 
 ---
 
-## 7. אימון — `train_detector.py`, `experiments.yaml`, ניסויים A/B/C לעומק
+## 7. אימון — `train_detector.py`, `experiments.yaml`, ניסויים A/B לעומק
 
 ### 7.1 זרימת קונפיגורציה
 
-1. נטען `experiments.yaml`: בלוק `global` + ניסוי **A / B / C**.
+1. נטען `experiments.yaml`: בלוק `global` + ניסוי **A** או **B**.
 2. **`_merge_train_kwargs`:** `global.train` ממוזג עם `experiments.<X>.train` — ערכי הניסוי **דורסים** גלובליים.
 3. **`_set_global_seed`:** Python / NumPy / PyTorch (+ CUDA).
 4. **`WANDB_DISABLED=true`:** מוגדר בתחילת `run_training` — **אין** שימוש ב־Weights & Biases; לוגים מקומיים של Ultralytics.
 5. **CUDA fallback:** אם אין GPU — מעבר ל־`cpu` + התאמות AMP.
 6. **ניסוי B:** מחלקה `InterceptorAlbumentationsTrainer` — ב־`build_dataset(mode="train")` מוזרקות **albumentations** (טשטוש, בהירות, רעש) דרך `build_interceptor_camera_augmentations()`.
-7. **ניסוי C:** פרמטרי loss/אופטימיזציה ב־YAML בלבד; **הנחה:** יש בתיקיית האימון תמונות עם **קבצי `.txt` ריקים** (שליליות).
 
 ### 7.2 טבלת ניסויים (ברירות עיקריות)
 
@@ -205,7 +204,6 @@ x_1 = (c_x - w/2)\,W,\quad y_1 = (c_y - h/2)\,H,\quad x_2 = (c_x + w/2)\,W,\quad
 |--------|--------------------------|------|
 | **A** | `yolo11_baseline` | Baseline: `mosaic: 1`, `mixup: 0`, ללא Albumentations מותאמים. |
 | **B** | `yolo11_domain_aug` | חיזוק דומיין מצלמה: Albumentations + `mosaic`/`mixup`/`close_mosaic` שונים. |
-| **C** | `yolo11_hard_negatives` | `cls` גבוה יותר, AdamW, `cls_pw`; **דורש** שליליות באימון. |
 
 ### 7.3 hyperparameters גלובליים (מינימום שכדאי לדעת בראיון)
 

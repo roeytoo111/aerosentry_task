@@ -1,4 +1,4 @@
-"""Ultralytics YOLOv11 training entrypoint with reproducible experiment presets (A/B/C)."""
+"""Ultralytics YOLOv11 training entrypoint with reproducible experiment presets (A/B)."""
 
 from __future__ import annotations
 
@@ -275,10 +275,6 @@ def run_training(
             trainer_cls = SameDirFinetuneTrainer
     elif key == "B":
         trainer_cls = InterceptorAlbumentationsTrainer
-    elif key == "C":
-        # Hard negatives: ensure train set includes images with empty YOLO labels.
-        # Ultralytics treats these as background; cls gain emphasizes score calibration vs background.
-        pass
 
     if resume_path is not None:
         if not resume_path.is_file():
@@ -329,7 +325,7 @@ def run_training(
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Train YOLOv11 with experiment presets A/B/C.")
+    p = argparse.ArgumentParser(description="Train YOLOv11 with experiment presets A/B.")
     p.add_argument(
         "--config",
         type=Path,
@@ -338,9 +334,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     p.add_argument(
         "--experiment",
-        choices=["A", "B", "C", "a", "b", "c"],
+        choices=["A", "B", "a", "b"],
         required=True,
-        help="A=baseline, B=interceptor albumentations, C=hard-negative / FP-aware loss shaping.",
+        help="A=baseline, B=interceptor albumentations (see config/experiments.yaml).",
     )
     p.add_argument(
         "--resume",

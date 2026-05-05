@@ -113,7 +113,7 @@ sequenceDiagram
 
 | שלב | כניסה | ליבה | פלט / מטרה |
 |-----|--------|------|-------------|
-| אימון | `run.py train --experiment A\|B\|C` | [`train_detector.py`](../src/models/train_detector.py) + `config/experiments.yaml` | `runs/detect/.../weights/best.pt` |
+| אימון | `run.py train --experiment A\|B` | [`train_detector.py`](../src/models/train_detector.py) + `config/experiments.yaml` | `runs/detect/.../weights/best.pt` |
 | מטריקות תמונה | `run.py eval` | [`evaluate_detector.py`](../src/models/evaluate_detector.py) | Precision / Recall / F1 לפי ספי conf |
 | פיצול דאטאסט | `run.py split` | [`split_dataset.py`](../tools/split_dataset.py) | מחלקות train/val/test מודעות-רצף |
 | ייצוא deployment | `run.py export` | [`export_engine.py`](../tools/export_engine.py) | ONNX / TensorRT (סביבה-תלוי) |
@@ -129,7 +129,7 @@ sequenceDiagram
 ```
 aerosentry_task/
 ├── run.py                 # CLI מאוחד
-├── config/                # dataset YAML, experiments A/B/C
+├── config/                # dataset YAML, experiments A/B
 ├── src/
 │   ├── core/              # חוזי נתונים משותפים
 │   ├── models/            # אימון, הערכת תמונות, ממשק דטקטור, factory
