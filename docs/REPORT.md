@@ -2,6 +2,8 @@
 
 **Weights:** `runs/detect/aerosentry/yolo11_baseline-4/weights/best.pt` (baseline) · `…/yolo11_domain_aug-2/weights/best.pt` (domain_aug2). **Detector:** conf `0.25`, imgsz `640`. Tool: `python3 run.py compare-fp-video` — each row = three full passes (Raw, Full FP, Geo-only).
 
+**Reproduce (from repo root, `PYTHONPATH=.`):** see the two `compare-fp-video` blocks in the root [`README.md`](../README.md) (Arsuf + `outputs/poster.mp4`); outputs go to `outputs/fp_video_compare_arsuf.md` and `outputs/fp_video_compare_poster.md`.
+
 **Arsuf (source):** [`Video Analytics/.../Arsuf F1 ... Clipchamp.mp4`](../Video%20Analytics/Test%20Footage/Arsuf%20F1%2009_04_2025%20-%20Made%20with%20Clipchamp.mp4)
 
 **Poster — video links (repo-relative):**  

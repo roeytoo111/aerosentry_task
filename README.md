@@ -16,7 +16,7 @@ This repo is **code only**. Dataset paths, videos, and `*.pt` checkpoints live o
 
 Unified entry point: **`python run.py`** with subcommands `train`, `eval`, `infer`, `compare-fp-video`, etc.
 
-Deeper diagrams and module map: [`docs/README.md`](docs/README.md). Algorithmic detail (Hebrew): [`docs/PROJECT_GUIDE_HE.md`](docs/PROJECT_GUIDE_HE.md).
+Deeper diagrams and module map: [`docs/README.md`](docs/README.md).
 
 ---
 
@@ -81,14 +81,28 @@ python3 run.py infer \
 
 **With FP reduction:** add `--fp-suppressor` (or `--fp-geo-only` for geometry-only ablation).
 
-**Reproducible benchmark table** (raw vs FP modes on one clip, multiple checkpoints):
+**Video benchmark table** — `python3 run.py compare-fp-video` runs three full passes per checkpoint (Raw, Full FP, Geo-only). Example below uses `conf=0.25` and `imgsz=640`; two clips, separate `--out-md` so runs do not overwrite each other. Filled-in sample tables: [`docs/REPORT.md`](docs/REPORT.md).
 
 ```bash
-python3 run.py compare-fp-video --help
-# e.g. --discover-runs runs/detect/aerosentry --video /path/to/clip.mp4 --device 0
+mkdir -p outputs
+python3 run.py compare-fp-video \
+  --weights runs/detect/aerosentry/yolo11_baseline-4/weights/best.pt \
+          runs/detect/aerosentry/yolo11_domain_aug-2/weights/best.pt \
+  --names baseline domain_aug \
+  --video "Video Analytics/Test Footage/Arsuf F1 09_04_2025 - Made with Clipchamp.mp4" \
+  --device 0 --conf 0.25 --imgsz 640 \
+  --out-md outputs/fp_video_compare_arsuf.md
+
+python3 run.py compare-fp-video \
+  --weights runs/detect/aerosentry/yolo11_baseline-4/weights/best.pt \
+          runs/detect/aerosentry/yolo11_domain_aug-2/weights/best.pt \
+  --names baseline domain_aug \
+  --video outputs/poster.mp4 \
+  --device 0 --conf 0.25 --imgsz 640 \
+  --out-md outputs/fp_video_compare_poster.md
 ```
 
-A compact results snapshot (tables + links to example outputs): [`docs/REPORT.md`](docs/REPORT.md).
+Adjust `--video` and checkpoint paths for your machine.
 
 ---
 
@@ -117,7 +131,7 @@ Pick one or more:
 
 - **Short annotated videos:** run `infer` with `--out` (and optionally `--fp-suppressor`) on provided test footage.  
 - **Quantitative demo:** `compare-fp-video` writes Markdown/CSV/JSON under `outputs/` (see `--out-md`).  
-- **On-disk examples:** if present, see `outputs/` for poster-derived clips referenced from [`docs/REPORT.md`](docs/REPORT.md).
+- **On-disk examples:** optional annotated clips under `outputs/`.
 
 ```bash
 python3 run.py --help
