@@ -8,12 +8,7 @@ This repository is **code only**: datasets, videos, and `*.pt` checkpoints stay 
 
 ```mermaid
 flowchart TD
-    classDef default fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,color:#0f172a;
-    classDef entry fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#0f172a;
-    classDef core fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#0f172a;
-    classDef data fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#0f172a;
-
-    ENTRY(["run.py — CLI entry"]) ::: entry
+    ENTRY["run.py - CLI entry"]
 
     subgraph Modes ["Execution modes"]
         direction LR
@@ -23,42 +18,39 @@ flowchart TD
         TOOLS["export, split, report, compare-fp-video"]
     end
 
-    subgraph TrainPath ["Training (offline)"]
+    subgraph TrainPath ["Training offline"]
         direction LR
-        UTR["Ultralytics train → best.pt"]
+        UTR["Ultralytics train to best.pt"]
     end
 
-    subgraph EvalPath ["Image evaluation (offline)"]
+    subgraph EvalPath ["Image evaluation offline"]
         direction LR
-        UEV["YOLO inference + P/R/F1 matching"]
+        UEV["YOLO inference and P/R/F1 matching"]
     end
 
-    subgraph Pipeline ["Video path — per frame"]
+    subgraph Pipeline ["Video path per frame"]
         direction TD
-        YOLO["1. Ultralytics YOLO (detection)"] ::: core
-        subgraph FP ["2. FalsePositiveSuppressor (optional)"]
-            direction TD
-            TM["TrackManager — M-of-N, 1€ filter"] ::: core
-            GEO["GeometricEgoMotion — ORB, RANSAC F/H"] ::: core
-            TM --> GEO
-        end
+        YOLO["1 Ultralytics YOLO detection"]
+        TM["2a TrackManager M-of-N and One-Euro filter"]
+        GEO["2b GeometricEgoMotion ORB RANSAC F and H"]
         YOLO --> TM
+        TM --> GEO
     end
 
-    DATA[("Data contracts — FrameData, Detection")] ::: data
+    DATA[("FrameData and Detection")]
 
     ENTRY --> Modes
     INFER --> Pipeline
     TRAIN --> TrainPath
     EVAL --> EvalPath
-    Pipeline --> DATA
+    GEO --> DATA
 ```
 
-**Full FP gate:** tracks can confirm detections before geometry runs; **`--fp-geo-only`** skips `TrackManager` and applies the geometric gate to raw boxes (ablation). Module-level detail: [`docs/README.md`](docs/README.md).
+Optional **FalsePositiveSuppressor** wraps steps **2a-2b** when using `--fp-suppressor`; **`--fp-geo-only`** skips **2a** and runs **2b** on raw boxes. Module-level detail: [`docs/README.md`](docs/README.md).
 
 ---
 
-## Setup (reviewers)
+## Setup 
 
 **Requirements:** Python **3.10+**, CUDA optional (use `--device cpu` if needed).
 
@@ -76,7 +68,7 @@ Edit **`config/dataset_aerosentry.yaml`** so `path`, `train`, `val`, and `test` 
 
 ---
 
-## Produce weights (checkpoints)
+## Produce weights
 
 Weights are **not** committed. After training you get `best.pt` under `runs/detect/aerosentry/<run_name>/weights/`.
 
