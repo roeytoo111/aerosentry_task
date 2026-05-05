@@ -1,52 +1,9 @@
 # AeroSentry — CV engineer assignment (pipeline)
 
-End-to-end **YOLO11** training on a YOLO-format image dataset, **offline evaluation** on image splits, and **video inference** with an optional **false-positive reduction** layer (`FalsePositiveSuppressor`: temporal tracks + geometric ego-motion, or `--fp-geo-only` for geometry-only ablation).
+End-to-end **YOLO11** training on a YOLO-format image dataset, **offline evaluation** on image splits, and **video inference** with an optional **false-positive reduction** layer.
 
 This repository is **code only**: datasets, videos, and `*.pt` checkpoints stay local (see `.gitignore`). Set paths in **`config/dataset_aerosentry.yaml`**.
 
-## Pipeline architecture
-
-```mermaid
-flowchart TD
-    ENTRY["run.py - CLI entry"]
-
-    subgraph Modes ["Execution modes"]
-        direction LR
-        INFER["infer_video.py"]
-        TRAIN["train_detector.py"]
-        EVAL["evaluate_detector.py"]
-        TOOLS["export, split, report, compare-fp-video"]
-    end
-
-    subgraph TrainPath ["Training offline"]
-        direction LR
-        UTR["Ultralytics train to best.pt"]
-    end
-
-    subgraph EvalPath ["Image evaluation offline"]
-        direction LR
-        UEV["YOLO inference and P/R/F1 matching"]
-    end
-
-    subgraph Pipeline ["Video path per frame"]
-        direction TD
-        YOLO["1 Ultralytics YOLO detection"]
-        TM["2a TrackManager M-of-N and One-Euro filter"]
-        GEO["2b GeometricEgoMotion ORB RANSAC F and H"]
-        YOLO --> TM
-        TM --> GEO
-    end
-
-    DATA[("FrameData and Detection")]
-
-    ENTRY --> Modes
-    INFER --> Pipeline
-    TRAIN --> TrainPath
-    EVAL --> EvalPath
-    GEO --> DATA
-```
-
-Optional **FalsePositiveSuppressor** wraps steps **2a-2b** when using `--fp-suppressor`; **`--fp-geo-only`** skips **2a** and runs **2b** on raw boxes. Module-level detail: [`docs/README.md`](docs/README.md).
 
 ---
 
@@ -137,6 +94,49 @@ Adjust `--video` and checkpoint paths for your machine.
 ---
 
 ## Written report (PDF)
+
+# Pipeline architecture
+
+```mermaid
+flowchart TD
+    ENTRY["run.py - CLI entry"]
+
+    subgraph Modes ["Execution modes"]
+        direction LR
+        INFER["infer_video.py"]
+        TRAIN["train_detector.py"]
+        EVAL["evaluate_detector.py"]
+        TOOLS["export, split, report, compare-fp-video"]
+    end
+
+    subgraph TrainPath ["Training offline"]
+        direction LR
+        UTR["Ultralytics train to best.pt"]
+    end
+
+    subgraph EvalPath ["Image evaluation offline"]
+        direction LR
+        UEV["YOLO inference and P/R/F1 matching"]
+    end
+
+    subgraph Pipeline ["Video path per frame"]
+        direction TD
+        YOLO[" Ultralytics YOLO detection"]
+        TM[" TrackManager M-of-N and One-Euro filter"]
+        GEO[" GeometricEgoMotion ORB RANSAC F and H"]
+        YOLO --> TM
+        TM --> GEO
+    end
+
+    DATA[("FrameData and Detection")]
+
+    ENTRY --> Modes
+    INFER --> Pipeline
+    TRAIN --> TrainPath
+    EVAL --> EvalPath
+    GEO --> DATA
+```
+
 
 The assignment asks for a **short report (3–6 pages)** covering:
 
