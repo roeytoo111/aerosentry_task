@@ -1,0 +1,9 @@
+# Ultralytics layout for the bundled Roboflow YOLOv11 export (paths fixed for in-folder train/valid/test).
+# ``path`` is relative to this file's directory (config/).
+path: ../Video Analytics/fixed wing UAV dataset.v2i.yolov11
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 2
+names: ["none", "uav"]

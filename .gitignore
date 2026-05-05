@@ -1,0 +1,19 @@
+/Video Analytics
+/cv_engineer_assignment.pdf
+/pipline_aeros.drawio.png
+/prompt_1.txt
+/prompt_2.txt
+/prompt_3.txt
+/prompt_4.txt
+/prompt_5.txt
+/yolo11n.pt# Computer Vision & Deep Learning
+*.pt
+*.onnx
+*.engine
+runs/
+__pycache__/
+.env
+*.mp4
+*.mov
+*.avi
+outputs/

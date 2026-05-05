@@ -1,0 +1,11 @@
+# Copy of the YOLO layout after you duplicate the Roboflow folder and add background frames to train/ only.
+# Duplicate: cp -a "../Video Analytics/fixed wing UAV dataset.v2i.yolov11" "../Video Analytics/fixed wing UAV dataset.v2i.yolov11_hardneg"
+# Then add images under .../train/images and matching EMPTY .../train/labels/<same_stem>.txt
+# ``path`` is relative to this file's directory (config/).
+path: ../Video Analytics/fixed wing UAV dataset.v2i.yolov11_hardneg
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 2
+names: ["none", "uav"]
