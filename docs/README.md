@@ -7,6 +7,7 @@
 | **מסמך זה** | מפת שכבות, פייפליין end-to-end, מפת מודולים |
 | [`PROJECT_GUIDE_HE.md`](PROJECT_GUIDE_HE.md) | עומק אלגוריתמי: TrackManager, GeometricEgoMotion, evaluate, בדיקות |
 | [`GEOMETRIC_EGO_MOTION_RUN_EVIDENCE.md`](GEOMETRIC_EGO_MOTION_RUN_EVIDENCE.md) | הוכחת הרצה / לוגים לדוח |
+| [`REPORT.md`](REPORT.md) | דוח בenchmark וידאו אחד ותמציתי (אנגלית): טבלאות + הסבר |
 
 ---
 
