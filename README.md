@@ -1,15 +1,13 @@
-# AeroSentry — CV engineer assignment (pipeline)
+# AeroSentry — CV engineer assignment 
 
 End-to-end **YOLO11** training on a YOLO-format image dataset, **offline evaluation** on image splits, and **video inference** with an optional **false-positive reduction** layer.
-
-This repository is **code only**: datasets, videos, and `*.pt` checkpoints stay local (see `.gitignore`). Set paths in **`config/dataset_aerosentry.yaml`**.
 
 
 ---
 
 ## Setup 
 
-**Requirements:** Python **3.10+**, CUDA optional (use `--device cpu` if needed).
+**Requirements:** Python **3.10+**.
 
 From the repo root:
 
@@ -29,7 +27,6 @@ Edit **`config/dataset_aerosentry.yaml`** so `path`, `train`, `val`, and `test` 
 
 Weights are **not** committed. After training you get `best.pt` under `runs/detect/aerosentry/<run_name>/weights/`.
 
-**Step-by-step (no Docker):** [`docs/SUBMISSION.md`](docs/SUBMISSION.md)
 
 Minimal flow:
 
@@ -44,7 +41,7 @@ Resume: `python3 run.py train --experiment A --resume runs/detect/aerosentry/<ru
 
 ## Run the model
 
-**Metrics on image splits** (P/R/F1 sweep over confidence thresholds):
+**Metrics on image splits** :
 
 ```bash
 python3 run.py eval \
@@ -54,7 +51,7 @@ python3 run.py eval \
   --device 0
 ```
 
-**Video with boxes** (writes an MP4):
+**Video with boxes** :
 
 ```bash
 mkdir -p outputs
@@ -67,8 +64,6 @@ python3 run.py infer \
 ```
 
 **With FP reduction:** add `--fp-suppressor` (or `--fp-geo-only` for geometry-only ablation).
-
-**Video benchmark table** — `python3 run.py compare-fp-video` runs three full passes per checkpoint (Raw, Full FP, Geo-only). Example below uses `conf=0.25` and `imgsz=640`; two clips, separate `--out-md` so runs do not overwrite each other. Filled-in sample tables: [`docs/REPORT.md`](docs/REPORT.md).
 
 ```bash
 mkdir -p outputs
@@ -93,9 +88,7 @@ Adjust `--video` and checkpoint paths for your machine.
 
 ---
 
-## Written report 
-
-Pipeline architecture
+## Written report & Pipeline architecture
 
 ```mermaid
 flowchart TD
@@ -138,20 +131,7 @@ flowchart TD
 ```
 
 
-The assignment asks for a **short report (3–6 pages)** covering:
-
-- Architecture diagram and pipeline walk-through  
-- Model choice, training setup, and training-curve diagnostics  
-- FP-reduction approach and alternatives considered  
-- **Jetson Orin Nano** deployment plan: precision, expected latency, memory, risks  
-- Evaluation setup, metrics, results on **`test/`** and **`test_footage/`**, and limitations  
-- **“Another week”** improvements  
-
-**Submitted write-up:** add your PDF beside the repo and link it here, for example:
-
-[Written report (PDF)](docs/REPORT_SUBMISSION.pdf)
-
-*(Replace the path with your actual filename if different.)*
+The **report**: [REPORT](Computer_Vision_Engineer_Task.pdf).
 
 ---
 
@@ -163,12 +143,24 @@ Pick one or more:
 - **Quantitative demo:** `compare-fp-video` writes Markdown/CSV/JSON under `outputs/` (see `--out-md`).  
 - **On-disk examples:** optional annotated clips under `outputs/`.
 
+**FP reduction on a “poster” sequence (UAV-on-floor style frames):** side-by-side style demo clips you can open locally after running `infer` (or use the committed examples if present in your tree):
+
+| Clip | What it shows |
+| --- | --- |
+| [`outputs/poster.mp4`](outputs/poster.mp4) | Raw detector — all boxes kept. |
+| [`outputs/poster_fp_reducer.mp4`](outputs/poster_fp_reducer.mp4) | Same source with **full** FP suppressor (`--fp-suppressor`) — fewer spurious boxes on background / floor. |
+
+Regenerate the pair from the same input clip (only the second run adds `--fp-suppressor`):
+
+```bash
+python3 run.py infer --weights /path/to/best.pt --source <input.mp4> \
+  --device 0 --conf 0.25 --out outputs/poster.mp4
+python3 run.py infer --weights /path/to/best.pt --source <input.mp4> \
+  --device 0 --conf 0.25 --fp-suppressor --out outputs/poster_fp_reducer.mp4
+```
+
 ```bash
 python3 run.py --help
 ```
 
 ---
-
-## License / privacy
-
-Do not commit sensitive dataset paths or customer footage in public forks; keep local paths in `config/dataset_aerosentry.yaml` only.

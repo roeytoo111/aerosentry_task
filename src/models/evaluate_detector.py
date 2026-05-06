@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
@@ -306,6 +307,12 @@ def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
         nargs="+",
         default=[0.25, 0.5, 0.75],
     )
+    p.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="Optional file to save the same metric lines (UTF-8). Still prints to stdout.",
+    )
     return p.parse_args(argv)
 
 
@@ -322,12 +329,20 @@ def main(argv: List[str] | None = None) -> int:
     )
     metrics = aggregate_metrics(per_image, args.conf_thresholds, args.iou_threshold)
 
+    lines: List[str] = []
     for ck, row in sorted(metrics.items(), key=lambda kv: float(kv[0])):
-        print(
+        line = (
             f"conf={ck}  P={row['precision']:.4f}  R={row['recall']:.4f}  "
             f"F1={row['f1']:.4f}  FDR={row['fdr']:.4f}  TP/FP/FN="
             f"{int(row['tp'])}/{int(row['fp'])}/{int(row['fn'])}"
         )
+        print(line)
+        lines.append(line)
+    if args.out is not None:
+        args.out = Path(args.out).expanduser().resolve()
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        print(f"Wrote {args.out}", file=sys.stderr)
     return 0
 
 

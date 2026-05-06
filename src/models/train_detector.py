@@ -1,4 +1,4 @@
-"""Ultralytics YOLOv11 training entrypoint with reproducible experiment presets (A/B)."""
+"""Ultralytics YOLOv11 training entrypoint with reproducible experiment presets (A/B/T/U)."""
 
 from __future__ import annotations
 
@@ -268,12 +268,13 @@ def run_training(
     finetune_same_dir = resume_file_ok and not ckpt_truly_resumable
 
     trainer_cls: Optional[Type[DetectionTrainer]] = None
+    domain_aug_experiments = {"B", "U"}
     if finetune_same_dir:
-        if key == "B":
+        if key in domain_aug_experiments:
             trainer_cls = InterceptorSameDirFinetuneTrainer
         else:
             trainer_cls = SameDirFinetuneTrainer
-    elif key == "B":
+    elif key in domain_aug_experiments:
         trainer_cls = InterceptorAlbumentationsTrainer
 
     if resume_path is not None:
@@ -325,7 +326,7 @@ def run_training(
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Train YOLOv11 with experiment presets A/B.")
+    p = argparse.ArgumentParser(description="Train YOLOv11 with experiment presets A/B/T/U.")
     p.add_argument(
         "--config",
         type=Path,
@@ -334,9 +335,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     p.add_argument(
         "--experiment",
-        choices=["A", "B", "a", "b"],
+        choices=["A", "B", "T", "U", "a", "b", "t", "u"],
         required=True,
-        help="A=baseline, B=interceptor albumentations (see config/experiments.yaml).",
+        help="A=baseline, B=domain aug, T=baseline+test each epoch, U=domain aug+test each epoch (see config/experiments.yaml).",
     )
     p.add_argument(
         "--resume",

@@ -24,8 +24,16 @@ global:
     device: 0
     patience: 30
     save: true
+    # Save ``weights/epoch{n}.pt`` every N epochs. Needed for ``plot_results_train_test_grid.py`` to draw
+    # **test** metrics vs epoch (otherwise only ``last.pt`` exists → one point). Use 1 for the densest curves;
+    # 5–10 saves disk on a laptop. Default Ultralytics is -1 (no epoch snapshots).
+    save_period: 10
     plots: true
     val: true
+    # Which split from ``data`` yaml is scored every epoch (loss + mAP in results.csv).
+    # Use ``val`` → ``valid/images`` (standard). Set to ``test`` only if you deliberately want
+    # epoch metrics on ``test/images``; that blurs the usual hold-out role of ``test``.
+    split: val
     # Project name only — Ultralytics already saves under runs/detect/ (avoid runs/detect/runs/...).
     project: aerosentry
     name: yolo11_baseline
@@ -55,3 +63,37 @@ experiments:
       cls: 0.5
       dfl: 1.5
       name: yolo11_domain_aug
+
+  # T — Per-epoch **test** metrics in ``results.csv`` (Ultralytics ``split: test``).
+  #
+  # Training still uses **train/images** only. Each epoch, val/* columns are computed on **test/images**
+  # (names stay ``val/box_loss`` etc. — Ultralytics quirk). Use for curve plots only; the test split is then
+  # **not** a clean unseen hold-out for final claims. Prefer A/B + ``save_period`` + offline test replay for rigor.
+  T:
+    notes: "Baseline-like hypers with ``split: test`` for train vs test-style loss curves every epoch."
+    train:
+      lr0: 0.01
+      lrf: 0.01
+      mosaic: 1.0
+      mixup: 0.0
+      box: 7.5
+      cls: 0.5
+      dfl: 1.5
+      split: test
+      name: yolo11_test_each_epoch
+
+  # U — Same as **B** (domain / interceptor albumentations + B-style mosaic/mixup) but with ``split: test``
+  # so epoch metrics in ``results.csv`` are computed on ``test/images`` (CSV columns still ``val/*``).
+  # Same methodological caveat as **T**: not a pristine test hold-out if you report final numbers only there.
+  U:
+    notes: "Domain aug (InterceptorAlbumentationsTrainer) with per-epoch test split for loss/mAP curves."
+    train:
+      mosaic: 0.85
+      mixup: 0.05
+      copy_paste: 0.0
+      close_mosaic: 15
+      box: 7.5
+      cls: 0.5
+      dfl: 1.5
+      split: test
+      name: yolo11_domain_aug_test_each_epoch

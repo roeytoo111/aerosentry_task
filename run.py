@@ -59,7 +59,27 @@ def _run_eval(ns: argparse.Namespace) -> int:
     argv.extend(["--iou-threshold", str(ns.iou_threshold)])
     argv.append("--conf-thresholds")
     argv.extend(str(t) for t in ns.conf_thresholds)
+    if ns.out is not None:
+        argv.extend(["--out", str(ns.out)])
     return int(eval_main(argv))
+
+
+def _run_yolo_val_plots(ns: argparse.Namespace) -> int:
+    from tools.val_yolo_plots import run_val_plots
+
+    w = _checkpoint_path_or_exit(Path(ns.weights))
+    sd = run_val_plots(
+        weights=w,
+        data=Path(ns.data),
+        split=ns.split,
+        imgsz=ns.imgsz,
+        batch=ns.batch,
+        device=ns.device,
+        project=ns.project,
+        name=(str(ns.name) if ns.name else None),
+    )
+    print(f"Saved plots and val metrics under:\n  {sd.resolve()}")
+    return 0
 
 
 def _run_report(ns: argparse.Namespace) -> int:
@@ -221,11 +241,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p_train = sub.add_parser("train", help="Train YOLO11 via Ultralytics (experiments A/B).")
+    p_train = sub.add_parser("train", help="Train YOLO11 via Ultralytics (experiments A/B/T/U).")
     p_train.add_argument(
         "--experiment",
         "-e",
-        choices=["A", "B", "a", "b"],
+        choices=["A", "B", "T", "U", "a", "b", "t", "u"],
         required=True,
     )
     p_train.add_argument("--config", type=Path, default=Path("config/experiments.yaml"))
@@ -265,7 +285,36 @@ def main(argv: list[str] | None = None) -> int:
         default=[0.25, 0.5, 0.75],
         help="Confidence cutoffs for the printed P/R/F1 rows (one row per value).",
     )
+    p_eval.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="Optional text file for metric lines (still prints to stdout).",
+    )
     p_eval.set_defaults(_handler=_run_eval)
+
+    p_yplots = sub.add_parser(
+        "yolo-val-plots",
+        help="Ultralytics val plots (PR/F1/confusion matrix) on train/val/test — same PNGs as training val.",
+    )
+    p_yplots.add_argument("--weights", type=Path, required=True)
+    p_yplots.add_argument("--data", type=Path, default=Path("config/dataset_aerosentry.yaml"))
+    p_yplots.add_argument("--split", default="test", choices=["train", "val", "test"])
+    p_yplots.add_argument("--device", default="0")
+    p_yplots.add_argument("--imgsz", type=int, default=640)
+    p_yplots.add_argument("--batch", type=int, default=8)
+    p_yplots.add_argument(
+        "--project",
+        default="aerosentry_eval",
+        help="Ultralytics project folder (under cwd).",
+    )
+    p_yplots.add_argument(
+        "--name",
+        type=str,
+        default=None,
+        help="Run subfolder; default derives from checkpoint run name + split.",
+    )
+    p_yplots.set_defaults(_handler=_run_yolo_val_plots)
 
     p_rep = sub.add_parser("report", help="Write TACTICAL_REPORT.md (+ JSON) from live bench + optional metrics.")
     p_rep.add_argument("--weights", type=Path, default=None)
