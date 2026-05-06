@@ -66,7 +66,7 @@ python3 run.py infer \
 
 **With FP reduction:** add `--fp-suppressor` (or `--fp-geo-only` for geometry-only ablation). Tuning: **`config/tracking_fp.yaml`** when those flags are set (unless `--fp-no-config`).
 
-**Video benchmark table** — `python3 run.py compare-fp-video` runs three full passes per checkpoint (Raw, Full FP, Geo-only). Example below uses `conf=0.25` and `imgsz=640`; two clips, separate `--out-md` so runs do not overwrite each other.
+**Video benchmark table** — `python3 run.py compare-fp-video` runs three full passes per checkpoint (Raw, Full FP, Geo-only). 
 
 ```bash
 mkdir -p outputs
@@ -105,13 +105,36 @@ Adjust `--video` and checkpoint paths for your machine.
 
 ---
 
-## Demo 
+
+## Demo (see the system run)
 
 Pick one or more:
 
 - **Short annotated videos:** run `infer` with `--out` (and optionally `--fp-suppressor`) on provided test footage.  
 - **Quantitative demo:** `compare-fp-video` writes Markdown/CSV/JSON under `outputs/` (see `--out-md`).  
 - **On-disk examples:** optional annotated clips under `outputs/`.
+
+**FP reduction on a “poster” sequence (UAV-on-floor style frames):** same clip processed **raw** vs **with full FP suppressor**. The two MP4s under `outputs/` are **tracked in git** so they play from this README on GitHub; regenerate anytime with `infer` below.
+
+<p align="center"><strong>Raw detector</strong> — all boxes kept</p>
+<video src="outputs/poster.mp4" controls playsinline width="640"></video>
+
+<p align="center"><strong>Full FP suppressor</strong> (`--fp-suppressor`)</p>
+<video src="outputs/poster_fp_reducer.mp4" controls playsinline width="640"></video>
+
+| Clip | What it shows |
+| --- | --- |
+| [`outputs/poster.mp4`](outputs/poster.mp4) | Raw detector — all boxes kept. |
+| [`outputs/poster_fp_reducer.mp4`](outputs/poster_fp_reducer.mp4) | Same source with **full** FP suppressor — fewer spurious boxes on background / floor. |
+
+Regenerate the pair from the same input clip (only the second run adds `--fp-suppressor`):
+
+```bash
+python3 run.py infer --weights /path/to/best.pt --source <input.mp4> \
+  --device 0 --conf 0.25 --out outputs/poster.mp4
+python3 run.py infer --weights /path/to/best.pt --source <input.mp4> \
+  --device 0 --conf 0.25 --fp-suppressor --out outputs/poster_fp_reducer.mp4
+```
 
 ```bash
 python3 run.py --help
