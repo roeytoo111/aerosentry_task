@@ -106,9 +106,7 @@ Pick one or more:
 - **Quantitative demo:** `compare-fp-video` writes Markdown/CSV/JSON under `outputs/` (see `--out-md`).  
 - **On-disk examples:** optional annotated clips under `outputs/`.
 
-**FP reduction on a “poster” sequence (UAV-on-floor style frames):** same clip processed **raw** vs **with full FP suppressor**. Generate with `infer` below, or open the MP4s locally if you already have them under `outputs/`.
-
-*(Note: `outputs/` is listed in `.gitignore` — to show these on GitHub, commit copies under e.g. `docs/demo/` or attach them to a Release, and point `src` at that path.)*
+**FP reduction on a “poster” sequence (UAV-on-floor style frames):** same clip processed **raw** vs **with full FP suppressor**. The two MP4s under `outputs/` are **tracked in git** so they play from this README on GitHub; regenerate anytime with `infer` below.
 
 <p align="center"><strong>Raw detector</strong> — all boxes kept</p>
 <video src="outputs/poster.mp4" controls playsinline width="640"></video>

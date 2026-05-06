@@ -14,7 +14,13 @@
 runs/
 __pycache__/
 .env
+# Video formats — allow README demo clips under outputs/
 *.mp4
+!outputs/poster.mp4
+!outputs/poster_fp_reducer.mp4
 *.mov
 *.avi
-outputs/
+# Everything under outputs/ except the two tracked poster demos
+outputs/**
+!outputs/poster.mp4
+!outputs/poster_fp_reducer.mp4
