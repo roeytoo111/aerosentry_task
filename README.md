@@ -1,4 +1,4 @@
-#CV engineer assignment 
+##CV engineer assignment 
 
 End-to-end **YOLO11** training on a YOLO-format image dataset, **offline evaluation** on image splits, and **video inference** with a **single detector checkpoint** plus an optional **false-positive reduction** layer.
 
