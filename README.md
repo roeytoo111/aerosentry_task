@@ -106,12 +106,20 @@ Pick one or more:
 - **Quantitative demo:** `compare-fp-video` writes Markdown/CSV/JSON under `outputs/` (see `--out-md`).  
 - **On-disk examples:** optional annotated clips under `outputs/`.
 
-**FP reduction on a “poster” sequence (UAV-on-floor style frames):** side-by-side style demo clips you can open locally after running `infer` (or use the committed examples if present in your tree):
+**FP reduction on a “poster” sequence (UAV-on-floor style frames):** same clip processed **raw** vs **with full FP suppressor**. Generate with `infer` below, or open the MP4s locally if you already have them under `outputs/`.
+
+*(Note: `outputs/` is listed in `.gitignore` — to show these on GitHub, commit copies under e.g. `docs/demo/` or attach them to a Release, and point `src` at that path.)*
+
+<p align="center"><strong>Raw detector</strong> — all boxes kept</p>
+<video src="outputs/poster.mp4" controls playsinline width="640"></video>
+
+<p align="center"><strong>Full FP suppressor</strong> (`--fp-suppressor`)</p>
+<video src="outputs/poster_fp_reducer.mp4" controls playsinline width="640"></video>
 
 | Clip | What it shows |
 | --- | --- |
 | [`outputs/poster.mp4`](outputs/poster.mp4) | Raw detector — all boxes kept. |
-| [`outputs/poster_fp_reducer.mp4`](outputs/poster_fp_reducer.mp4) | Same source with **full** FP suppressor (`--fp-suppressor`) — fewer spurious boxes on background / floor. |
+| [`outputs/poster_fp_reducer.mp4`](outputs/poster_fp_reducer.mp4) | Same source with **full** FP suppressor — fewer spurious boxes on background / floor. |
 
 Regenerate the pair from the same input clip (only the second run adds `--fp-suppressor`):
 
