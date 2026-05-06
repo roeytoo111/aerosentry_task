@@ -95,6 +95,7 @@ Centralized tuning lives in `config/tracking_fp.yaml`:
 
 ---
 
-## 📖 Deep Dive
-For a detailed narrative on data contracts and architectural coupling, see:
-* [Architecture Deep-Dive](docs/HYBRID_AND_FP_ARCHITECTURE.md)
+## 📖 Relevant articles
+https://arxiv.org/abs/2602.13324
+https://arxiv.org/abs/2402.08550
+https://arxiv.org/abs/2412.04147
