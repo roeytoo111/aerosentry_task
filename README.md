@@ -90,46 +90,9 @@ Adjust `--video` and checkpoint paths for your machine.
 
 ## Written report & Pipeline architecture
 
-```mermaid
-flowchart TD
-    ENTRY["run.py - CLI entry"]
-
-    subgraph Modes ["Execution modes"]
-        direction LR
-        INFER["infer_video.py"]
-        TRAIN["train_detector.py"]
-        EVAL["evaluate_detector.py"]
-        TOOLS["export, split, report, compare-fp-video"]
-    end
-
-    subgraph TrainPath ["Training offline"]
-        direction LR
-        UTR["Ultralytics train to best.pt"]
-    end
-
-    subgraph EvalPath ["Image evaluation offline"]
-        direction LR
-        UEV["YOLO inference and P/R/F1 matching"]
-    end
-
-    subgraph Pipeline ["Video path per frame"]
-        direction TD
-        YOLO[" Ultralytics YOLO detection"]
-        TM[" TrackManager M-of-N and One-Euro filter"]
-        GEO[" GeometricEgoMotion ORB RANSAC F and H"]
-        YOLO --> TM
-        TM --> GEO
-    end
-
-    DATA[("FrameData and Detection")]
-
-    ENTRY --> Modes
-    INFER --> Pipeline
-    TRAIN --> TrainPath
-    EVAL --> EvalPath
-    GEO --> DATA
-```
-
+<p align="center">
+  <img src="docs/pipeline_architecture.png" alt="Pipeline architecture: run.py CLI entry, execution modes, offline training and evaluation, per-frame video path (YOLO, TrackManager, GeometricEgoMotion)" width="920">
+</p>
 
 The **report**: [REPORT](Computer_Vision_Engineer_Task.pdf).
 
