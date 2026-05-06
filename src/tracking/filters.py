@@ -46,9 +46,9 @@ class OneEuroFilter:
 
     def __init__(
         self,
-        min_cutoff: float = 1.0,
-        beta: float = 0.007,
-        d_cutoff: float = 1.0,
+        min_cutoff: float = 1.2,
+        beta: float = 0.012,
+        d_cutoff: float = 1.2,
     ) -> None:
         self.min_cutoff = float(min_cutoff)
         self.beta = float(beta)
@@ -100,9 +100,9 @@ class BoundingBoxOneEuroFilter:
 
     def __init__(
         self,
-        min_cutoff: float = 1.0,
-        beta: float = 0.007,
-        d_cutoff: float = 1.0,
+        min_cutoff: float = 1.2,
+        beta: float = 0.012,
+        d_cutoff: float = 1.2,
     ) -> None:
         self._fx = OneEuroFilter(min_cutoff, beta, d_cutoff)
         self._fy = OneEuroFilter(min_cutoff, beta, d_cutoff)

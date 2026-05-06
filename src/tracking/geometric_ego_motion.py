@@ -46,16 +46,16 @@ class GeometricEgoMotion:
 
     def __init__(
         self,
-        max_features: int = 2000,
-        lowe_ratio: float = 0.75,
-        ransac_threshold_F: float = 1.0,
-        ransac_threshold_H: float = 3.0,
-        fp_inlier_ratio_F: float = 0.65,
-        fp_inlier_ratio_H: float = 0.85,
-        min_pts_in_bbox: int = 5,
-        fast_threshold: int = 15,              # Lower ORB threshold to find more features on smooth UAVs
-        roi_margin_px: float = 3.0,            # Expand ROI slightly to capture edge features of targets
-        skip_geo_area_threshold: float = 0.001, # Skip geometry check for very small targets (<0.1% of frame area)
+        max_features: int = 2500,
+        lowe_ratio: float = 0.72,
+        ransac_threshold_F: float = 1.2,
+        ransac_threshold_H: float = 4.0,
+        fp_inlier_ratio_F: float = 0.78,
+        fp_inlier_ratio_H: float = 0.92,
+        min_pts_in_bbox: int = 10,
+        fast_threshold: int = 11,              # Lower ORB threshold to find more features on smooth UAVs
+        roi_margin_px: float = 6.0,            # Expand ROI slightly to capture edge features of targets
+        skip_geo_area_threshold: float = 0.003, # Skip geometry check for very small targets (<0.1% of frame area)
         *,
         verbose: bool = False,
     ) -> None:

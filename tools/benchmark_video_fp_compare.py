@@ -29,6 +29,11 @@ import numpy as np
 from src.core.data_contracts import Detection, FrameData
 from src.evaluation.tactical_evaluator import UltralyticsYoloDetector
 from src.models.evaluate_detector import _xywhn_to_xyxy, match_image
+from src.tracking.fp_config import (
+    build_false_positive_suppressor_from_mapping,
+    load_tracking_fp_yaml_dict,
+    resolve_tracking_fp_yaml,
+)
 from src.tracking.fp_suppressor import FalsePositiveSuppressor
 
 
@@ -175,12 +180,14 @@ def _run_video_pass(
     max_frames: int,
     gt_frames: Optional[List[Tuple[np.ndarray, np.ndarray]]] = None,
     gt_iou: float = 0.5,
+    fp_cfg: Optional[Dict[str, Any]] = None,
 ) -> PassStats:
+    cfg = fp_cfg if fp_cfg is not None else {}
     sup: Optional[FalsePositiveSuppressor] = None
     if fp_mode == "full":
-        sup = FalsePositiveSuppressor(geo_only=False)
+        sup = build_false_positive_suppressor_from_mapping(cfg, geo_only=False)
     elif fp_mode == "geo_only":
-        sup = FalsePositiveSuppressor(geo_only=True)
+        sup = build_false_positive_suppressor_from_mapping(cfg, geo_only=True)
 
     cap = cv2.VideoCapture(str(cap_path))
     if not cap.isOpened():
@@ -265,6 +272,7 @@ def _bench_one_model(
     max_frames: int,
     gt_frames: Optional[List[Tuple[np.ndarray, np.ndarray]]],
     gt_iou: float,
+    fp_cfg: Dict[str, Any],
 ) -> ModelVideoBench:
     det_raw = UltralyticsYoloDetector(weights, device=device, imgsz=imgsz, conf=conf)
     raw = _run_video_pass(
@@ -274,6 +282,7 @@ def _bench_one_model(
         max_frames=max_frames,
         gt_frames=gt_frames,
         gt_iou=gt_iou,
+        fp_cfg=fp_cfg,
     )
 
     det_fp = UltralyticsYoloDetector(weights, device=device, imgsz=imgsz, conf=conf)
@@ -284,6 +293,7 @@ def _bench_one_model(
         max_frames=max_frames,
         gt_frames=gt_frames,
         gt_iou=gt_iou,
+        fp_cfg=fp_cfg,
     )
 
     det_geo = UltralyticsYoloDetector(weights, device=device, imgsz=imgsz, conf=conf)
@@ -294,6 +304,7 @@ def _bench_one_model(
         max_frames=max_frames,
         gt_frames=gt_frames,
         gt_iou=gt_iou,
+        fp_cfg=fp_cfg,
     )
 
     frames = raw.frames
@@ -470,6 +481,17 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     p.add_argument("--out-csv", type=Path, default=Path("outputs/fp_video_compare.csv"))
     p.add_argument("--out-json", type=Path, default=Path("outputs/fp_video_compare.json"))
     p.add_argument("--no-json", action="store_true")
+    p.add_argument(
+        "--fp-config",
+        type=Path,
+        default=None,
+        help="YAML for full/geo FP modes (TrackManager + GeometricEgoMotion). Default: repo config/tracking_fp.yaml.",
+    )
+    p.add_argument(
+        "--fp-no-config",
+        action="store_true",
+        help="Ignore YAML for FP passes; use built-in defaults.",
+    )
     return p.parse_args(argv)
 
 
@@ -492,6 +514,15 @@ def main(argv: Optional[List[str]] = None) -> int:
             f"Loaded GT: {len(gt_frames)} frame entries, iou_threshold={gt_iou}",
             flush=True,
         )
+
+    yaml_path = resolve_tracking_fp_yaml(
+        args.fp_config,
+        repo_root=_REPO_ROOT,
+        no_config=args.fp_no_config,
+    )
+    fp_cfg = load_tracking_fp_yaml_dict(yaml_path)
+    if yaml_path is not None:
+        print(f"Loaded FP tracking config (full + geo passes): {yaml_path}", flush=True)
 
     pairs: List[Tuple[str, Path]]
     if args.discover_runs is not None:
@@ -532,6 +563,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 max_frames=args.max_frames,
                 gt_frames=gt_frames,
                 gt_iou=gt_iou,
+                fp_cfg=fp_cfg,
             )
         )
 

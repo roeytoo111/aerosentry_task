@@ -186,6 +186,10 @@ def _run_infer(ns: argparse.Namespace) -> int:
         argv.append("--debug-detections")
     if getattr(ns, "geo_debug", False):
         argv.append("--geo-debug")
+    if getattr(ns, "fp_config", None) is not None:
+        argv.extend(["--fp-config", str(ns.fp_config)])
+    if getattr(ns, "fp_no_config", False):
+        argv.append("--fp-no-config")
     return int(infer_main(argv))
 
 
@@ -231,6 +235,10 @@ def _run_compare_fp_video(ns: argparse.Namespace) -> int:
             argv.extend(ns.names)
     if getattr(ns, "gt_json", None) is not None:
         argv.extend(["--gt-json", str(ns.gt_json)])
+    if getattr(ns, "fp_config", None) is not None:
+        argv.extend(["--fp-config", str(ns.fp_config)])
+    if getattr(ns, "fp_no_config", False):
+        argv.append("--fp-no-config")
     return int(compare_main(argv))
 
 
@@ -378,6 +386,17 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="With --fp-suppressor / --fp-geo-only: GeometricEgoMotion / FP skip logs.",
     )
+    p_inf.add_argument(
+        "--fp-config",
+        type=Path,
+        default=None,
+        help="YAML tuning for FP modes (default loads config/tracking_fp.yaml if it exists).",
+    )
+    p_inf.add_argument(
+        "--fp-no-config",
+        action="store_true",
+        help="Ignore tracking_fp.yaml when using --fp-suppressor / --fp-geo-only.",
+    )
     p_inf.set_defaults(_handler=_run_infer)
 
     p_demo = sub.add_parser("demo", help="Run stub pipeline on a video path (ingest → detect stub → FP suppressor).")
@@ -425,6 +444,17 @@ def main(argv: list[str] | None = None) -> int:
         help="Optional per-frame GT (pixel xyxy) for TP/FP/FN and P/R; see tools/benchmark_video_fp_compare.py doc.",
     )
     p_cmp.add_argument("--no-json", action="store_true")
+    p_cmp.add_argument(
+        "--fp-config",
+        type=Path,
+        default=None,
+        help="YAML for full FP + geo-only passes (default: config/tracking_fp.yaml if present).",
+    )
+    p_cmp.add_argument(
+        "--fp-no-config",
+        action="store_true",
+        help="Ignore YAML for FP benchmark passes.",
+    )
     p_cmp.set_defaults(_handler=_run_compare_fp_video)
 
     args = parser.parse_args(argv)

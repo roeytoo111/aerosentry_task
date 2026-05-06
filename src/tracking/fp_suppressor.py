@@ -28,6 +28,9 @@ class FalsePositiveSuppressor:
         geo_estimator: Optional custom :class:`GeometricEgoMotion`.
         geo_only: If ``True``, skip tracking; apply geometry per detection every frame
             (after the first; frame 0 has no previous image).
+        emit_unconfirmed_tracks: If ``True`` (full mode only), output smoothed boxes for
+            tracks that **matched this frame** but are **not** yet M-of-N confirmed — skips
+            the geometric gate for those hits so fleeting targets remain visible.
     """
 
     def __init__(
@@ -36,8 +39,10 @@ class FalsePositiveSuppressor:
         geo_estimator: Optional[GeometricEgoMotion] = None,
         *,
         geo_only: bool = False,
+        emit_unconfirmed_tracks: bool = False,
     ) -> None:
         self._geo_only = bool(geo_only)
+        self._emit_unconfirmed_tracks = bool(emit_unconfirmed_tracks)
         self._tracks: Optional[TrackManager]
         if self._geo_only:
             self._tracks = None
@@ -240,16 +245,29 @@ class FalsePositiveSuppressor:
             sm_xywh, hit, is_conf, label, cid, conf = row
             if not hit:
                 continue
-            if not is_conf:
-                continue
 
-            is_airborne = True
             bbox_tuple = (
                 float(sm_xywh[0]),
                 float(sm_xywh[1]),
                 float(sm_xywh[2]),
                 float(sm_xywh[3]),
             )
+
+            if not is_conf:
+                if not self._emit_unconfirmed_tracks:
+                    continue
+                survivors.append(
+                    Detection(
+                        class_id=int(cid),
+                        class_label=label,
+                        confidence=float(conf),
+                        bbox=bbox_tuple,
+                        track_id=int(tid),
+                    )
+                )
+                continue
+
+            is_airborne = True
 
             if tid in confirmed_hits:
                 if (

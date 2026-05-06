@@ -19,6 +19,11 @@ import numpy as np
 
 from src.core.data_contracts import Detection, FrameData
 from src.evaluation.tactical_evaluator import UltralyticsYoloDetector
+from src.tracking.fp_config import (
+    build_false_positive_suppressor_from_mapping,
+    load_tracking_fp_yaml_dict,
+    resolve_tracking_fp_yaml,
+)
 from src.tracking.fp_suppressor import FalsePositiveSuppressor
 
 
@@ -133,6 +138,20 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="With --fp-suppressor or --fp-geo-only: GeometricEgoMotion / FP skip logs (or AEROSENTRY_GEO_DEBUG=1).",
     )
+    p.add_argument(
+        "--fp-config",
+        type=Path,
+        default=None,
+        help=(
+            "YAML for TrackManager + GeometricEgoMotion. "
+            "Default: repo config/tracking_fp.yaml if it exists."
+        ),
+    )
+    p.add_argument(
+        "--fp-no-config",
+        action="store_true",
+        help="Do not load tracking_fp.yaml (use built-in defaults only).",
+    )
     return p.parse_args(argv)
 
 
@@ -166,14 +185,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         imgsz=args.imgsz,
         conf=args.conf,
     )
-    if getattr(args, "fp_geo_only", False):
-        suppressor: Optional[FalsePositiveSuppressor] = FalsePositiveSuppressor(
-            geo_only=True
+    suppressor: Optional[FalsePositiveSuppressor] = None
+    if getattr(args, "fp_geo_only", False) or args.fp_suppressor:
+        yaml_path = resolve_tracking_fp_yaml(
+            args.fp_config,
+            repo_root=_REPO_ROOT,
+            no_config=args.fp_no_config,
         )
-    elif args.fp_suppressor:
-        suppressor = FalsePositiveSuppressor()
-    else:
-        suppressor = None
+        fp_cfg = load_tracking_fp_yaml_dict(yaml_path)
+        if yaml_path is not None:
+            print(f"Loaded FP tracking config: {yaml_path}", flush=True)
+        if getattr(args, "fp_geo_only", False):
+            suppressor = build_false_positive_suppressor_from_mapping(
+                fp_cfg, geo_only=True
+            )
+        else:
+            suppressor = build_false_positive_suppressor_from_mapping(
+                fp_cfg, geo_only=False
+            )
 
     cap = cv2.VideoCapture(str(args.source))
     if not cap.isOpened():

@@ -70,13 +70,13 @@ class TrackManager:
 
     def __init__(
         self,
-        vote_m: int = 5,
-        vote_n: int = 7,
-        iou_threshold: float = 0.3,
-        max_miss_streak: int = 5,
-        euro_min_cutoff: float = 1.0,
-        euro_beta: float = 0.007,
-        euro_d_cutoff: float = 1.0,
+        vote_m: int = 3,
+        vote_n: int = 5,
+        iou_threshold: float = 0.22,
+        max_miss_streak: int = 8,
+        euro_min_cutoff: float = 1.2,
+        euro_beta: float = 0.012,
+        euro_d_cutoff: float = 1.2,
     ) -> None:
         if vote_m > vote_n or vote_m < 1 or vote_n < 1:
             raise ValueError("Require 1 <= vote_m <= vote_n")
