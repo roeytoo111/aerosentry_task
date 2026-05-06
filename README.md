@@ -1,10 +1,10 @@
-# 🚀 Robust UAV Vision: Hybrid Detection & Geometric FP Suppression
+# Robust UAV Vision: Hybrid Detection & Geometric FP Suppression
 
 This repository implements an advanced vision pipeline for UAV-based target detection. It balances **real-time efficiency** with **high-fidelity robustness** using a cascaded fallback mechanism and a geometry-aware filtering stage.
 
 ---
 
-## 🛠 Project Overview
+## Project Overview
 
 In UAV scenarios, standard detectors often struggle with motion blur, small targets, and complex background clutter. This project addresses these challenges through:
 
@@ -13,7 +13,7 @@ In UAV scenarios, standard detectors often struggle with motion blur, small targ
 
 ---
 
-## ⚙️ Setup & Installation
+## Setup & Installation
 
 **Requirements:** Python **3.10+**, CUDA-enabled GPU.
 
@@ -33,7 +33,7 @@ export PYTHONPATH=.
 
 ---
 
-## 🧠 Core Architecture
+## Core Architecture
 
 ### 1. Cascaded Hybrid Detector (`HybridDetector`)
 The system employs a **Dual-Path** inference strategy to optimize the compute-vs-accuracy trade-off:
@@ -53,7 +53,7 @@ Located in `src/tracking/fp_suppressor.py`, this stage cleans the raw detector o
 
 ---
 
-## 📊 Usage Examples
+## Usage Examples
 
 ### Training & Evaluation
 ```bash
@@ -87,7 +87,7 @@ python3 run.py compare-fp-video \
 
 ---
 
-## 📂 Configuration
+## Configuration
 Centralized tuning lives in `config/tracking_fp.yaml`:
 * `track_manager`: M-of-N and One Euro parameters.
 * `geometric_ego_motion`: RANSAC thresholds and ORB feature limits.
