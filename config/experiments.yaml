@@ -1,10 +1,3 @@
-# Sample experiment matrix for AeroSentry YOLOv11 training (Jetson / discrete GPU laptop).
-# Run:  PYTHONPATH=. python3 -m src.models.train_detector --config config/experiments.yaml --experiment A
-# CPU-only fallback: device: cpu, imgsz: 512, batch: 4–6, cache: true (see train_detector auto-fallback if no CUDA).
-#
-# 4 GB GPUs (e.g. GTX 1650): defaults below use batch 8 + cache to avoid OOM retries and cut dataloader cost.
-# To go faster (slightly lower quality): set imgsz: 512. For quick tests: lower epochs (e.g. 10–15).
-# Ultralytics may disable AMP on some Turing cards — training stays correct but slower than FP16 on newer GPUs.
 
 global:
   seed: 42
