@@ -1,0 +1,42 @@
+# Tracking + hybrid-demo detector tuning + false-positive suppression.
+# hybrid_video_demo.py loads this file when it exists (YOLO conf, mock tracker, optional FP).
+# FP suppressor stages use the same YAML with --fp-suppressor / --fp-geo-only.
+# Override path: --fp-config …   |   Disable file: --fp-no-config
+#
+# Preset below biases **recall** (keep TP): loose geometry + fast M-of-N + tentative boxes.
+# Use when FP count is acceptable but drops hurt more than occasional clutter.
+
+fp_suppressor:
+  emit_unconfirmed_tracks: true
+
+track_manager:
+  vote_m: 2
+  vote_n: 4
+  iou_threshold: 0.20
+  max_miss_streak: 8
+  euro_min_cutoff: 1.2
+  euro_beta: 0.012
+  euro_d_cutoff: 1.2
+
+geometric_ego_motion:
+  max_features: 2500
+  lowe_ratio: 0.72
+  ransac_threshold_F: 1.4
+  ransac_threshold_H: 5.0
+  # High ⇒ harder to classify ROI as background/planar FP (keeps more real UAVs).
+  fp_inlier_ratio_F: 0.82
+  fp_inlier_ratio_H: 0.94
+  # Fewer ORB pts inside box ⇒ skip ratio test entirely ⇒ keep box.
+  min_pts_in_bbox: 12
+  fast_threshold: 10
+  roi_margin_px: 8.0
+  skip_geo_area_threshold: 0.005
+  verbose: false
+
+# examples/hybrid_video_demo.py — YOLO confidence (CLI --yolo-conf overrides when passed).
+hybrid_demo_detector:
+  yolo_conf: 0.4
+
+# MockTracker → HybridDetector is_track_lost.
+hybrid_demo_mock_tracker:
+  miss_threshold: 3
