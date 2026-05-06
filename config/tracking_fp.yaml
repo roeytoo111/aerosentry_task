@@ -1,6 +1,5 @@
-# Tracking + hybrid-demo detector tuning + false-positive suppression.
-# hybrid_video_demo.py loads this file when it exists (YOLO conf, mock tracker, optional FP).
-# FP suppressor stages use the same YAML with --fp-suppressor / --fp-geo-only.
+# Tracking tuning + false-positive suppression.
+# Loaded for --fp-suppressor / --fp-geo-only unless --fp-no-config.
 # Override path: --fp-config …   |   Disable file: --fp-no-config
 #
 # Preset below biases **recall** (keep TP): loose geometry + fast M-of-N + tentative boxes.
@@ -32,11 +31,3 @@ geometric_ego_motion:
   roi_margin_px: 8.0
   skip_geo_area_threshold: 0.005
   verbose: false
-
-# examples/hybrid_video_demo.py — YOLO confidence (CLI --yolo-conf overrides when passed).
-hybrid_demo_detector:
-  yolo_conf: 0.4
-
-# MockTracker → HybridDetector is_track_lost.
-hybrid_demo_mock_tracker:
-  miss_threshold: 3

@@ -70,28 +70,6 @@ def _nested_mapping(cfg: Dict[str, Any], key: str) -> Dict[str, Any]:
     return dict(v) if isinstance(v, dict) else {}
 
 
-def parse_hybrid_demo_mock_tracker_miss_threshold(cfg: Dict[str, Any]) -> int:
-    sec = cfg.get("hybrid_demo_mock_tracker")
-    if not isinstance(sec, dict):
-        return 3
-    try:
-        return max(1, int(sec.get("miss_threshold", 3)))
-    except (TypeError, ValueError):
-        return 3
-
-
-def parse_hybrid_demo_yolo_conf(cfg: Dict[str, Any]) -> Optional[float]:
-    """Return ``hybrid_demo_detector.yolo_conf`` from YAML, or ``None`` if unset."""
-    sec = cfg.get("hybrid_demo_detector")
-    if not isinstance(sec, dict) or "yolo_conf" not in sec:
-        return None
-    try:
-        v = float(sec["yolo_conf"])
-        return max(0.0, min(1.0, v))
-    except (TypeError, ValueError):
-        return None
-
-
 def build_false_positive_suppressor_from_mapping(
     cfg: Dict[str, Any],
     *,
@@ -116,8 +94,6 @@ def build_false_positive_suppressor_from_mapping(
 __all__ = [
     "build_false_positive_suppressor_from_mapping",
     "load_tracking_fp_yaml_dict",
-    "parse_hybrid_demo_mock_tracker_miss_threshold",
-    "parse_hybrid_demo_yolo_conf",
     "resolve_tracking_fp_yaml",
     "tracking_fp_yaml_default_path",
 ]
