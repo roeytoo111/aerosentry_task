@@ -1,8 +1,7 @@
-# AeroSentry — CV engineer assignment (pipeline)
+#CV engineer assignment 
 
 End-to-end **YOLO11** training on a YOLO-format image dataset, **offline evaluation** on image splits, and **video inference** with a **single detector checkpoint** plus an optional **false-positive reduction** layer.
 
-Detection is **one YOLO model per frame** (`tools/infer_video.py` via `run.py infer`). There is **no cascaded or secondary detector** in the supported CLI path—optional FP suppression only **filters** boxes that YOLO already produced.
 
 This repository is **code only**: datasets, videos, and `*.pt` checkpoints stay local (see `.gitignore`). Set paths in **`config/dataset_aerosentry.yaml`**.
 
@@ -10,7 +9,7 @@ This repository is **code only**: datasets, videos, and `*.pt` checkpoints stay 
 
 ## Setup
 
-**Requirements:** Python **3.10+**, CUDA optional (use `--device cpu` if needed).
+**Requirements:** Python **3.10+**.
 
 From the repo root:
 
@@ -43,7 +42,7 @@ Resume: `python3 run.py train --experiment A --resume runs/detect/aerosentry/<ru
 
 ## Run the model
 
-**Metrics on image splits** (P/R/F1 sweep over confidence thresholds):
+**Metrics on image splits** :
 
 ```bash
 python3 run.py eval \
@@ -102,45 +101,11 @@ Adjust `--video` and checkpoint paths for your machine.
   >
 </p>
 
-**Report:** [Computer_Vision_Engineer_Task.pdf]
+**Report:** [Computer_Vision_Engineer_Task.pdf](Computer_Vision_Engineer_Task.pdf)
 
 ---
 
-## Demo (see the system run)
-
-Pick one or more:
-
-- **Short annotated videos:** run `infer` with `--out` (and optionally `--fp-suppressor`) on provided test footage.  
-- **Quantitative demo:** `compare-fp-video` writes Markdown/CSV/JSON under `outputs/` (see `--out-md`).  
-- **On-disk examples:** optional annotated clips under `outputs/`.
-
-**FP reduction on a “poster” sequence (UAV-on-floor style frames):** same clip processed **raw** vs **with full FP suppressor**. The two MP4s under `outputs/` are **tracked in git** so they play from this README on GitHub; regenerate anytime with `infer` below.
-
-<p align="center"><strong>Raw detector</strong> — all boxes kept</p>
-<video src="outputs/poster.mp4" controls playsinline width="640"></video>
-
-<p align="center"><strong>Full FP suppressor</strong> (`--fp-suppressor`)</p>
-<video src="outputs/poster_fp_reducer.mp4" controls playsinline width="640"></video>
-
-| Clip | What it shows |
-| --- | --- |
-| [`outputs/poster.mp4`](outputs/poster.mp4) | Raw detector — all boxes kept. |
-| [`outputs/poster_fp_reducer.mp4`](outputs/poster_fp_reducer.mp4) | Same source with **full** FP suppressor — fewer spurious boxes on background / floor. |
-
-Regenerate the pair from the same input clip (only the second run adds `--fp-suppressor`):
-
-```bash
-python3 run.py infer --weights /path/to/best.pt --source <input.mp4> \
-  --device 0 --conf 0.25 --out outputs/poster.mp4
-python3 run.py infer --weights /path/to/best.pt --source <input.mp4> \
-  --device 0 --conf 0.25 --fp-suppressor --out outputs/poster_fp_reducer.mp4
-```
-
-```bash
-python3 run.py --help
-```
-
----
+## Demo 
 
 Pick one or more:
 
