@@ -1,0 +1,33 @@
+Act as a Senior Staff Computer Vision and Sensor Fusion Engineer. We are now executing Phase 3 of our UAV detection pipeline for the Jetson Orin Nano: Kinematics and False Positive (FP) Suppression. 
+
+We need to build the tracking and filtering modules that act as the ultimate gatekeeper. This logic must analyze the temporal and kinematic behavior of raw 2D detections to aggressively filter out hallucinations, 2D media (posters/billboards), and grounded targets before outputting an engagement trigger.
+
+Task:
+Implement the `FalsePositiveSuppressor` pipeline in Python. The code MUST be strictly OOP, heavily type-hinted, and optimized to run entirely on the CPU using `numpy` and `cv2` to preserve GPU bandwidth for the detector.
+
+Please generate the following files and classes:
+
+1. Kinematic Smoothing (`src/tracking/filters.py`):
+- Implement a `OneEuroFilter` class. 
+- It must initialize with default parameters for target tracking (e.g., min_cutoff, beta, d_cutoff).
+- Implement a `__call__` or `filter` method that takes a noisy coordinate (x, y, w, h), calculates the derivative (velocity) based on the timestamp, dynamically adjusts the cutoff frequency, and returns the smoothed bounding box. This is critical for eliminating camera jitter without introducing tracking lag during sharp UAV maneuvers.
+
+2. Temporal Multi-Frame Voting (`src/tracking/track_manager.py`):
+- Implement a `TrackManager` class to maintain state across frames.
+- Use a lightweight tracking logic (e.g., IoU matching) to associate current detections with active tracks.
+- Implement a strict Voting Logic: A track must only be flagged as `is_confirmed = True` if it has been positively detected in at least M out of the last N frames (e.g., 5 out of 7). Single-frame "ghost" detections must be stored as tentative and purged if not seen again.
+
+3. Ego-Motion Compensation & Static Distractor Rejection (`src/tracking/ego_motion.py`):
+- Implement an `EgoMotionEstimator` class.
+- Add a method to calculate Sparse Optical Flow (using `cv2.calcOpticalFlowPyrLK` and `cv2.goodFeaturesToTrack`). 
+- OPTIMIZATION REQUIREMENT: Do NOT compute global optical flow over the entire 4K/HD frame. The method should extract a Region of Interest (ROI) incorporating the bounding box and its immediate background context.
+- Calculate the affine transformation or homography of the background points between `frame_{t-1}` and `frame_t`. 
+- Implement logic to subtract this background motion (parallax) from the bounding box's motion vector. If the residual independent motion of the detection is near zero, flag it as a grounded/static distractor (`is_airborne = False`).
+
+4. The Suppressor Facade (`src/tracking/fp_suppressor.py`):
+- Implement the `FalsePositiveSuppressor` class that acts as the facade/manager for this phase.
+- It must accept the `FrameData` object (defined in our Phase 1 Data Contracts), iterate through its `Detection` objects, pass them through the `TrackManager`, apply the `OneEuroFilter`, and run the `EgoMotionEstimator` if the track is confirmed.
+- It should return an updated `FrameData` object where only valid, airborne, temporally consistent targets remain.
+
+Output:
+Generate the fully documented Python code for these 4 files. Ensure smooth integration with the Data Contracts established previously.

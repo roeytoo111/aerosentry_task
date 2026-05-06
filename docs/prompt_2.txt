@@ -1,0 +1,22 @@
+Act as a Senior Staff Computer Vision Engineer. We are now moving to Phase 2 of our fixed-wing UAV detection project for the Jetson Orin Nano. We need to implement the scientific experimentation and training pipeline using Ultralytics YOLOv11.
+
+Task:
+Write the training and evaluation scripts (`src/models/train_detector.py` and `src/models/evaluate_detector.py`) designed to run a strict sequence of reproducible experiments. 
+
+Requirements for the Training Script (`train_detector.py`):
+1. Support for multiple configurations (Experiments). Create logic to easily switch between these scenarios:
+   - Experiment A (Baseline): Standard YOLOv11-nano training on the dataset.
+   - Experiment B (Domain-Specific Augmentation): Integrate `albumentations` into the training pipeline. Create an augmentation composition that explicitly mimics the physical realities of an interceptor drone camera: aggressive `MotionBlur`, `GaussianBlur`, `RandomBrightnessContrast` (to simulate sun overexposure), and `GaussNoise`.
+   - Experiment C (Hard Negative Mining): Ensure the dataloader can seamlessly ingest pure background images (images with no labels/empty txt files) to force the model to penalize distractor features. Configure the training hyperparameters to heavily penalize False Positives (e.g., tuning Focal Loss parameters if applicable).
+
+Requirements for the Evaluation Script (`evaluate_detector.py`):
+1. We cannot rely solely on standard mAP. Write a custom evaluation function that parses the model's predictions against the validation/test ground truths.
+2. The evaluator MUST explicitly calculate and log the following metrics at varying confidence thresholds (e.g., 0.25, 0.50, 0.75):
+   - Precision (TP / (TP + FP))
+   - Recall (TP / (TP + FN))
+   - F1-Score (Harmonic mean of Precision and Recall)
+   - False Discovery Rate (FDR = 1 - Precision)
+3. Implement integration with `wandb` (Weights & Biases) in both scripts to log training curves, the Precision-Recall curve (PR Curve), validation metrics, and sample predictions side-by-side for pure scientific tracking.
+
+Output:
+Provide the Python code for `train_detector.py` and `evaluate_detector.py`, along with a sample `config.yaml` showing the hyperparameter overrides for the experiments. Ensure the code is clean, modular, and production-ready.

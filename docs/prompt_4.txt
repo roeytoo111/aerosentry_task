@@ -1,0 +1,26 @@
+Act as a Senior Edge AI and MLOps Engineer. We are now in Phase 4 (Deployment & Tactical Evaluation) of our UAV interceptor detection pipeline targeting the Jetson Orin Nano (8GB).
+
+We need to build the deployment export pipeline and a rigorous tactical evaluation suite. The code must be strict OOP, fully type-hinted, and ready for production benchmarking.
+
+Task:
+Implement the deployment export logic and the tactical evaluation scripts. Please generate the following modules:
+
+1. TensorRT Export Pipeline (`tools/export_engine.py`):
+- Create an `EngineExporter` class that manages the conversion from PyTorch (.pt) -> ONNX -> TensorRT (.engine).
+- It MUST include explicit parameters to toggle `fp16=True` and `int8=True`.
+- For INT8 export, write the logic/stub for Post-Training Quantization (PTQ) using Entropy Calibration (e.g., setting up a calibration dataloader that feeds representative images to the TensorRT builder).
+- Include configurations to ensure an End-to-End NMS-Free graph if the model backbone supports it, minimizing CPU-GPU memory copies.
+
+2. Tactical Evaluator (`src/evaluation/tactical_evaluator.py`):
+- Create a `TacticalEvaluator` class that tests the FULL pipeline (Detector + FP Suppressor from Phase 3).
+- Implement an `evaluate_end_to_end_latency` method. CRITICAL: You must use `torch.cuda.synchronize()` before and after measuring GPU execution times to prevent asynchronous hiding of latency. Calculate the 95th percentile (p95) latency, not just the mean.
+- Implement an `evaluate_tracking_stability` method to measure Identity Switches (IDSW) on a continuous video sequence.
+- Implement an `evaluate_distractor_rejection` method. This evaluates a specific "Hard Negative" dataset folder and calculates the True Negative Rate (TNR) – proving our FP Suppressor blocks grounded planes and 2D media.
+
+3. Report Generator (`tools/generate_report.py`):
+- Write a script that orchestrates the `TacticalEvaluator` over the test sets.
+- It must automatically generate a clean `TACTICAL_REPORT.md` file.
+- The Markdown report should contain a comparison table displaying metrics across FP32, FP16, and INT8 modes. The table columns should be: Precision, Recall, FDR, TNR (on distractors), End-to-End Latency (ms), and FPS.
+
+Output:
+Generate the completely documented Python code for these 3 files. Ensure all classes follow the Data Contracts established in Phase 1 and simulate the Orin Nano hardware constraints where applicable.

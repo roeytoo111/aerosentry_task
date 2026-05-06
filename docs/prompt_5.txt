@@ -1,0 +1,60 @@
+You are a Senior Computer Vision & MLOps Architect working on the 'AeroSentry' project. 
+The project identifies airborne UAVs using YOLO and tracks them on a Jetson Orin Nano (strict hardware constraints: CPU is limited, GPU must be utilized via CUDA).
+
+Currently, the pipeline has a `FalsePositiveSuppressor` that uses a basic ROI-based optical flow (`EgoMotionEstimator`) after the `TrackManager` approves a track via M-of-N voting. 
+
+Your task is to implement a robust, Hardware-Accelerated Geometric FP Reduction pipeline based on Epipolar Geometry and Homography. 
+
+Please follow these EXACT architectural instructions step-by-step. Do not rewrite existing data contracts or the `TrackManager`.
+
+### Phase 1: Create the Geometric Engine
+Create a new file `src/tracking/geometric_ego_motion.py` and implement a class named `GeometricEgoMotion`.
+
+**1. Initialization & Thresholds:**
+In `__init__`, define configurable parameters: `max_features` (default 2000), `lowe_ratio` (default 0.75), `ransac_threshold_F` (default 1.0 px), `ransac_threshold_H` (default 3.0 px), `fp_inlier_ratio_F` (default 0.65), and `fp_inlier_ratio_H` (default 0.85).
+
+**2. Hardware-Accelerated Feature Extraction & Matching (Must run ONCE per frame pair):**
+Implement `_extract_and_match_cuda(self, prev_bgr, curr_bgr)`.
+- **CRITICAL:** You must use `cv2.cuda_GpuMat()`, `cv2.cuda_ORB.create()`, and `cv2.cuda.DescriptorMatcher_createBFMatcher(cv2.NORM_HAMMING)`.
+- Upload the BGR numpy arrays to the GPU, convert to grayscale on the GPU, extract ORB features, and match them.
+- Apply Lowe's Ratio Test to filter matches.
+- Download only the good matched keypoints back to the CPU as numpy arrays `pts_prev` and `pts_curr` of shape (N, 2). Return them.
+
+**3. Global Motion Modeling (RANSAC):**
+Implement `_compute_global_models(self, pts_prev, pts_curr)`.
+- If len(pts) < 8, return None for masks.
+- Compute the Fundamental Matrix ($F$) using `cv2.findFundamentalMat` with `cv2.FM_RANSAC` and `ransac_threshold_F`. Extract `inlier_mask_F`.
+- Compute the Homography Matrix ($H$) using `cv2.findHomography` with `cv2.RANSAC` and `ransac_threshold_H`. Extract `inlier_mask_H`.
+- Return `(inlier_mask_F, inlier_mask_H)`.
+
+**4. Spatial Intersection & Decision:**
+Implement `analyze_bbox_motion(self, bbox_normalized, frame_shape, pts_curr, inlier_mask_F, inlier_mask_H)`.
+- Denormalize the `[cx, cy, w, h]` normalized bbox into absolute pixel coordinates `[x1, y1, x2, y2]` using `frame_shape`.
+- Find all indices of `pts_curr` that fall strictly inside this `[x1, y1, x2, y2]` bounding box.
+- If the number of points inside the bbox is too small (e.g., < 5), return `True` (assume Airborne/TP to avoid dropping small targets).
+- Count how many of these internal points are INLIERS in `inlier_mask_F`. If `(inliers_F / total_points_in_bbox) > fp_inlier_ratio_F`, the object moves with the background. Return `False` (It is a Grounded FP).
+- Count how many are INLIERS in `inlier_mask_H`. If `(inliers_H / total_points_in_bbox) > fp_inlier_ratio_H`, the object is flat 2D media. Return `False` (It is a 2D Media FP).
+- Otherwise, return `True` (True Positive Airborne).
+
+### Phase 2: Integrate into `FalsePositiveSuppressor`
+Modify the existing `src/tracking/fp_suppressor.py`:
+1. In `__init__`, instantiate `self.geo_estimator = GeometricEgoMotion()`.
+2. In `process(self, detections, prev_frame_data, curr_frame_data)`:
+   - First, run the existing `TrackManager.update()` logic.
+   - Collect all "surviving" detections (where `hit==True` and `is_confirmed==True`).
+   - **Optimization:** If there are NO surviving confirmed detections, DO NOT run the geometric engine. Skip to updating the frame cache.
+   - If there ARE surviving confirmed detections and `prev_frame_data` exists:
+     - Call `pts_prev, pts_curr = self.geo_estimator._extract_and_match_cuda(...)` ONCE globally for the whole image.
+     - Call `mask_F, mask_H = self.geo_estimator._compute_global_models(...)` ONCE globally.
+     - Iterate through the surviving detections. For each `det`:
+       - Call `is_airborne = self.geo_estimator.analyze_bbox_motion(det.bbox, curr_frame.shape, pts_curr, mask_F, mask_H)`.
+       - If `not is_airborne`, drop the detection.
+3. Update `_advance_frame_cache` as usual.
+
+### Constraints & Rules:
+- Maintain strict typing using the existing `Detection` and `FrameData` from `src.core.data_contracts`.
+- Do not alter the normalization format of `Detection.bbox` (keep it `[cx, cy, w, h]` normalized). Conversion to pixels must happen locally inside the geometric analysis function.
+- Ensure the code handles edge cases gracefully (e.g., blank frames, `findFundamentalMat` returning None, etc.).
+- Add detailed docstrings explaining the mathematical rationale (Epipolar constraints and Planar motion) for future maintainers.
+
+Generate the code for `geometric_ego_motion.py` and the updated `fp_suppressor.py`.

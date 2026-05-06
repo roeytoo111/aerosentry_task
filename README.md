@@ -91,7 +91,7 @@ Adjust `--video` and checkpoint paths for your machine.
 ## Written report & Pipeline architecture
 
 <p align="center">
-  <img src="docs/pipeline_architecture.png" alt="Pipeline architecture: run.py CLI entry, execution modes, offline training and evaluation, per-frame video path (YOLO, TrackManager, GeometricEgoMotion)" width="920">
+  <img src="pipeline_architecture.png" alt="Pipeline architecture: run.py CLI entry, execution modes, offline training and evaluation, per-frame video path (YOLO, TrackManager, GeometricEgoMotion)" width="920">
 </p>
 
 The **report**: [REPORT](Computer_Vision_Engineer_Task.pdf).
