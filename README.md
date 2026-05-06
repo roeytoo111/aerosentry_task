@@ -90,8 +90,21 @@ Adjust `--video` and checkpoint paths for your machine.
 
 ## Hybrid inference and false-positive filtering
 
+
+
 This repository supports **two related ideas**: (1) a **cascaded hybrid detector** that can swap to a heavier model on difficult frames, and (2) an optional **false-positive (FP) suppression** stage that uses short-term tracking plus egomotion-consistent geometry. They compose cleanly: detect first, then filter.
 
+
+
+### 🎥 Visual Demonstration
+<div align="center">
+  <video src="כאן_תדביק_את_הלינק_שקיבלת_אחרי_שגררת_את_הוידאו" width="100%" controls>
+    Your browser does not support the video tag.
+  </video>
+  <p><i>Left: Standard YOLO inference | Right: Hybrid pipeline with Geometric FP Suppression and RT-DETR fallback</i></p>
+</div>
+
+---
 ### Cascaded hybrid detector (`HybridDetector`)
 
 The hybrid path is implemented in `src/models/hybrid_detector.py` and exercised end-to-end in **`examples/hybrid_video_demo.py`** (not wired into `run.py infer`, which runs a single YOLO checkpoint).
